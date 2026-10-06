@@ -16,9 +16,25 @@ type Bucket = {
   };
 };
 
-export function uploadBucket(request: Request): Bucket {
+/**
+ * Finds the MOVIE_MAX_MEDIA R2 binding. Cloudflare exposes bindings through
+ * `cloudflare:workers`; older nitro builds put them on the request or globalThis.
+ */
+export async function uploadBucket(request: Request): Promise<Bucket> {
   const runtime = request as Request & { runtime?: { cloudflare?: { env?: Record<string, unknown> } } };
-  const bucket = runtime.runtime?.cloudflare?.env?.['MOVIE_MAX_MEDIA'] as Bucket | undefined;
+  let bucket = runtime.runtime?.cloudflare?.env?.["MOVIE_MAX_MEDIA"] as Bucket | undefined;
+  if (!bucket) {
+    try {
+      const mod = (await import(/* @vite-ignore */ "cloudflare:workers" as string)) as { env?: Record<string, unknown> };
+      bucket = mod.env?.["MOVIE_MAX_MEDIA"] as Bucket | undefined;
+    } catch {
+      /* not running on Cloudflare */
+    }
+  }
+  if (!bucket) {
+    const g = globalThis as { __env__?: Record<string, unknown>; MOVIE_MAX_MEDIA?: unknown };
+    bucket = (g.__env__?.["MOVIE_MAX_MEDIA"] ?? g.MOVIE_MAX_MEDIA) as Bucket | undefined;
+  }
   if (!bucket?.put || !bucket?.get) throw new Error("R2 binding MOVIE_MAX_MEDIA is not configured.");
   return bucket;
 }

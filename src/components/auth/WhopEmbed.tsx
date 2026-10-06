@@ -12,12 +12,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 export default function WhopEmbed({
   sessionId,
   onDone,
+  email,
 }: {
   sessionId: string;
+  email?: string | undefined;
   onDone?: () => void;
 }) {
   const [noExpress, setNoExpress] = useState(false);
   const [open, setOpen] = useState(false);
+  const prefill = { email: email ?? "" };
   const returnUrl = typeof window !== "undefined" ? window.location.href : "https://luofilm.site";
 
   return (
@@ -26,6 +29,7 @@ export default function WhopEmbed({
         <WhopExpressCheckoutButton
           checkoutConfigurationId={sessionId}
           methods={["whop-pay"]}
+          {...(email ? { prefill } : {})}
           returnUrl={returnUrl}
           theme="light"
           skipRedirect
@@ -49,13 +53,14 @@ export default function WhopEmbed({
           Pay with card · Whop
         </button>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[420px] overflow-y-auto p-0">
+      <Dialog open={open} onOpenChange={setOpen} modal={false}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()} className="max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[420px] overflow-y-auto p-0">
           <DialogHeader className="sr-only">
             <DialogTitle>Pay with card</DialogTitle>
           </DialogHeader>
           <WhopCheckoutEmbed
             sessionId={sessionId}
+            {...(email ? { prefill } : {})}
             theme="light"
             skipRedirect
             returnUrl={returnUrl}

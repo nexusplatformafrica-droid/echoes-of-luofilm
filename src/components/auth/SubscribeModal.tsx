@@ -352,8 +352,12 @@ export function SubscribeModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] w-[calc(100vw-1.25rem)] max-w-[350px] overflow-hidden rounded-[22px] border-0 bg-[linear-gradient(160deg,oklch(0.98_0.02_20),oklch(0.97_0.03_320)_45%,oklch(0.98_0.03_80))] p-0 text-[oklch(0.28_0.03_320)] shadow-2xl sm:max-w-[760px] sm:rounded-lg">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      {/* Non-modal so PayPal/Whop windows (added outside this dialog) stay clickable and typeable. */}
+      {open && <div aria-hidden className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" />}
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        className="max-h-[88vh] w-[calc(100vw-1.25rem)] max-w-[350px] overflow-hidden rounded-[22px] border-0 bg-[linear-gradient(160deg,oklch(0.98_0.02_20),oklch(0.97_0.03_320)_45%,oklch(0.98_0.03_80))] p-0 text-[oklch(0.28_0.03_320)] shadow-2xl sm:max-w-[760px] sm:rounded-lg">
         <DialogHeader className="sr-only">
           <DialogTitle>Choose your membership</DialogTitle>
         </DialogHeader>
@@ -686,6 +690,7 @@ export function SubscribeModal({
                   <div>
                     <WhopEmbed
                       sessionId={cardSession}
+                      email={user?.email ?? undefined}
                       onDone={() => {
                         setPhase("waiting");
                         setStatus("Confirming your card payment…");
