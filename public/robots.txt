@@ -1,4 +1,4 @@
-# LUOFILM — open to every search engine, social network, AI agent and crawler.
+# MOVIE MAX — open to every search engine, social network, AI agent and crawler.
 User-agent: *
 Allow: /
 Disallow: /admin

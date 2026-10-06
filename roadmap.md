@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Round sidebar edges and animate a colour gradient.
+- [ ] Update Movie Max public descriptions and sharing image; check sitemap index and every sitemap.
+- [ ] Restore available subtitles in the download floating window and verify downloads.
+
 - [x] Keep MovieBox web home rows visible through intermittent upstream failures; make sidebar inset and rounded without clipping page content.
 - [x] Restore the original site font except on MOVIEMAX, improve sidebar icon contrast with the five chosen icons, and align the content grid to the sidebar.
 - [x] Remove every legacy DASH and mobile-source playback fallback.
