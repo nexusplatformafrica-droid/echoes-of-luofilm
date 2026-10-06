@@ -1,16 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import homeIcon from "@/assets/home.svg.asset.json";
-import moviesIcon from "@/assets/movies.svg.asset.json";
-import seriesIcon from "@/assets/series.svg.asset.json";
-import animationIcon from "@/assets/animation.svg.asset.json";
-import tvIcon from "@/assets/tv.svg.asset.json";
+import homeIconSrc from "@/assets/home.svg";
+import moviesIconSrc from "@/assets/movies.svg";
+import seriesIconSrc from "@/assets/series.svg";
+import animationIconSrc from "@/assets/animation.svg";
+import tvIconSrc from "@/assets/tv.svg";
 
 const items = [
-  { slug: "home", label: "Home", icon: homeIcon.url },
-  { slug: "movies", label: "Movies", icon: moviesIcon.url },
-  { slug: "drama", label: "Series", icon: seriesIcon.url },
-  { slug: "animation", label: "Animation", icon: animationIcon.url },
-  { slug: "tv", label: "TV", icon: tvIcon.url },
+  { slug: "home", label: "Home", icon: homeIconSrc },
+  { slug: "movies", label: "Movies", icon: moviesIconSrc },
+  { slug: "drama", label: "Series", icon: seriesIconSrc },
+  { slug: "animation", label: "Animation", icon: animationIconSrc },
+  { slug: "tv", label: "TV", icon: tvIconSrc },
 ];
 
 export function Sidebar() {

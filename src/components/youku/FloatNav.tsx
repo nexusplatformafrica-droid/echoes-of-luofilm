@@ -11,7 +11,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { db as supabase } from "@/lib/db";
 import { fdb } from "@/lib/fdb";
 import { listAllEpisodes, listLuoTitles, type LuoLanguage } from "@/lib/luo";
-import logoAsset from "@/assets/moviemax-logo.png.asset.json";
+import logoSrc from "@/assets/moviemax-logo.png";
+const logoAsset = { url: logoSrc };
 
 /** Floating glass pill nav: LUO · LUGANDA · SUBSCRIBE · LOGIN */
 export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
