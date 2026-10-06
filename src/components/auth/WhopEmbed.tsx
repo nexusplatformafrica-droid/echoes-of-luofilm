@@ -13,16 +13,14 @@ export default function WhopEmbed({
   sessionId,
   onDone,
   email,
-  name,
 }: {
   sessionId: string;
   email?: string;
-  name?: string;
   onDone?: () => void;
 }) {
   const [noExpress, setNoExpress] = useState(false);
   const [open, setOpen] = useState(false);
-  const prefill = email ? { email, ...(name ? { name } : {}) } : undefined;
+  const prefill = email ? { email } : undefined;
   const returnUrl = typeof window !== "undefined" ? window.location.href : "https://luofilm.site";
 
   return (

@@ -691,7 +691,6 @@ export function SubscribeModal({
                     <WhopEmbed
                       sessionId={cardSession}
                       email={user?.email ?? undefined}
-                      name={(profile as { display_name?: string } | null)?.display_name ?? undefined}
                       onDone={() => {
                         setPhase("waiting");
                         setStatus("Confirming your card payment…");
