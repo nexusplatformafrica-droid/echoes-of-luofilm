@@ -15,12 +15,12 @@ export default function WhopEmbed({
   email,
 }: {
   sessionId: string;
-  email?: string;
+  email?: string | undefined;
   onDone?: () => void;
 }) {
   const [noExpress, setNoExpress] = useState(false);
   const [open, setOpen] = useState(false);
-  const prefill = email ? { email } : undefined;
+  const prefill = { email: email ?? "" };
   const returnUrl = typeof window !== "undefined" ? window.location.href : "https://luofilm.site";
 
   return (
@@ -29,7 +29,7 @@ export default function WhopEmbed({
         <WhopExpressCheckoutButton
           checkoutConfigurationId={sessionId}
           methods={["whop-pay"]}
-          prefill={prefill}
+          {...(email ? { prefill } : {})}
           returnUrl={returnUrl}
           theme="light"
           skipRedirect
@@ -60,7 +60,7 @@ export default function WhopEmbed({
           </DialogHeader>
           <WhopCheckoutEmbed
             sessionId={sessionId}
-            prefill={prefill}
+            {...(email ? { prefill } : {})}
             theme="light"
             skipRedirect
             returnUrl={returnUrl}
