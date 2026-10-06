@@ -30,7 +30,7 @@ const homeQuery = queryOptions({
     } catch (error) {
       if (typeof window === "undefined") throw error;
       const { fetchHome } = await import("@/lib/moviebox");
-      return fetchHome();
+      return (await fetchHome()) as import("@/lib/catalog.functions").HomeData;
     }
   },
   // Keep the front page live: the catalog's trending / coming-soon rails move
