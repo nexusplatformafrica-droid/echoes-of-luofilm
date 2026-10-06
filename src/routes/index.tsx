@@ -20,7 +20,19 @@ type HeroCard = { id: string; title: string; image: string | null; watchId?: str
 
 const homeQuery = queryOptions({
   queryKey: ["home"],
-  queryFn: () => getHome(),
+  // Some hosts (e.g. Cloudflare) get refused by the catalog server-side, but the
+  // web catalog accepts visitors' browsers directly — so fall back to that.
+  queryFn: async () => {
+    try {
+      const home = await getHome();
+      if (home.rows.length) return home;
+      throw new Error("empty home");
+    } catch (error) {
+      if (typeof window === "undefined") throw error;
+      const { fetchHome } = await import("@/lib/moviebox");
+      return (await fetchHome()) as import("@/lib/catalog.functions").HomeData;
+    }
+  },
   // Keep the front page live: the catalog's trending / coming-soon rails move
   // every few minutes, so refresh in the background rather than caching for long.
   staleTime: 30 * 1000,
