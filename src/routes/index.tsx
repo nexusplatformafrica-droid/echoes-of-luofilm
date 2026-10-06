@@ -62,23 +62,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       {
-        title:
-           "MOVIEMAX — Watch and Download Free Movies, Series, Animations, Episodes with Multiple Subtitles, Luo Translated Movies and Lugandan Translated Movies",
+        title: "MOVIE MAX — Watch and Download Translated movies English, Hindi, Luganda, Luo, Teso, esla, ptbr, Tamil, Telugu and in their original language with subtitles.",
       },
       {
-        name: "description",
-        content:
-           "MOVIEMAX — watch and download free movies, series, animations and episodes with multiple subtitles, plus Luo translated movies and Lugandan translated movies in HD.",
+        name: "description", content: "Watch and Download Translated movies English, Hindi, Luganda, Luo, Teso, esla, ptbr, Tamil, Telugu and in their original language with subtitles.",
       },
       {
-        property: "og:title",
-        content:
-           "MOVIEMAX — Watch and Download Free Movies, Series, Animations, Episodes with Multiple Subtitles, Luo & Lugandan Translated Movies",
+        property: "og:title", content: "MOVIE MAX — Watch and Download Translated movies English, Hindi, Luganda, Luo, Teso, esla, ptbr, Tamil, Telugu and in their original language with subtitles.",
       },
       {
-        property: "og:description",
-        content:
-          "Free movies, series, animations and episodes with multiple subtitles, plus Luo and Lugandan translated movies — watch or download in HD.",
+        property: "og:description", content: "Watch and Download Translated movies English, Hindi, Luganda, Luo, Teso, esla, ptbr, Tamil, Telugu and in their original language with subtitles.",
       },
       { property: "og:url", content: "/" },
       { property: "og:type", content: "website" },

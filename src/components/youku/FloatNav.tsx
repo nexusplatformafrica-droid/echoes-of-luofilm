@@ -57,10 +57,10 @@ export function FloatNav({ onSearch }: { onSearch?: () => void } = {}) {
       <div className="search-glow min-w-0 max-w-[calc(100vw-1rem)] shrink rounded-full p-[1.5px] lg:max-w-none lg:shrink-0">
       <div className="flex min-w-0 items-center gap-1 overflow-x-auto rounded-full bg-background/85 p-1 shadow-lg backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible">
         {/* Brand stays inside the floating navigation on every screen. */}
-         <Link to="/" aria-label="MOVIEMAX home" className="flex shrink-0 items-center gap-1 pl-1 pr-1 sm:gap-1.5">
+         <Link to="/" aria-label="MOVIE MAX home" className="flex shrink-0 items-center gap-1 pl-1 pr-1 sm:gap-1.5">
            <img src={logoAsset.url} alt="" className="size-7 shrink-0 object-contain sm:size-8" />
            <span className="brand-logo-text whitespace-nowrap text-[12px] font-extrabold leading-none sm:text-[15px]">
-             MOVIEMAX
+             MOVIE MAX
            </span>
         </Link>
         <Link
