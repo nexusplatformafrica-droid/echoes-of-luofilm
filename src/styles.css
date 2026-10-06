@@ -66,9 +66,15 @@
   --color-vip-foreground: var(--vip-foreground);
   --color-hot: var(--hot);
   --color-hot-foreground: var(--hot-foreground);
+  --color-channel: var(--channel);
+  --color-channel-foreground: var(--channel-foreground);
 }
 
 :root {
+  --channel: oklch(0.79 0.21 152);
+  --channel-foreground: oklch(0.2 0.04 152);
+  --wa-banner-shade: linear-gradient(90deg, var(--background) 0%, color-mix(in oklab, var(--background) 96%, transparent) 30%, color-mix(in oklab, var(--background) 82%, transparent) 48%, transparent 78%);
+  --wa-banner-shade-mobile: linear-gradient(0deg, var(--background) 0%, color-mix(in oklab, var(--background) 98%, transparent) 48%, color-mix(in oklab, var(--background) 65%, transparent) 65%, transparent 100%);
   --radius: 0.625rem;
   /* Youku dark theme */
   --background: oklch(0.165 0.006 264);
@@ -542,6 +548,15 @@
 }
 
 /* ---- WhatsApp prompt auto-exit progress bar ---- */
+.wa-banner-shade { background-image: var(--wa-banner-shade); }
+.wa-banner-timer { animation: wa-exit-bar 8000ms linear forwards; }
+@media (max-width: 639px) {
+  .wa-banner-shade { background-image: var(--wa-banner-shade-mobile); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-prompt { animation: none; transition: none; }
+  .wa-banner-timer { animation: none; }
+}
 @keyframes wa-exit-bar {
   from {
     width: 100%;
