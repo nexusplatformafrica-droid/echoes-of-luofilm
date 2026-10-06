@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Round sidebar edges and animate a colour gradient.
+- [x] Round every sidebar corner, including the curves, and animate a continuous colour gradient around the entire edge.
 - [ ] Update Movie Max public descriptions and sharing image; check sitemap index and every sitemap.
 - [ ] Restore available subtitles in the download floating window and verify downloads.
 
