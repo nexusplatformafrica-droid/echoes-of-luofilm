@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Update every WhatsApp channel link, redesign its floating banner with Movie Max logo and varied movie imagery without VJ labels, and provide the Cloudflare deployment configuration checklist.
+
 - [x] Keep the sidebar flat against the left wall; round only the outward-facing curves and preserve the animated gradient.
 - [ ] Update Movie Max public descriptions and sharing image; check sitemap index and every sitemap.
 - [ ] Restore available subtitles in the download floating window and verify downloads.

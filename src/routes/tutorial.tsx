@@ -5,7 +5,7 @@ import { TopBar } from "@/components/youku/TopBar";
 import { MobileNav } from "@/components/youku/MobileNav";
 import { TOUR_START_EVENT } from "@/components/luo/DownloadTour";
 
-const CHANNEL_URL = "https://whatsapp.com/channel/0029VbCdTbF6buMEQY5wzG3y";
+const CHANNEL_URL = "https://whatsapp.com/channel/0029VbEBSz6J3jv5PPsldQ3u";
 
 const STEPS = [
   {

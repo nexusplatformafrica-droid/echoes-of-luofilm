@@ -11,6 +11,8 @@
 
 <!-- LOVABLE:END -->
 
+- The WhatsApp floating banner uses bundled movie-wall artwork and the existing bundled brand logo with semantic channel tokens. Why: its imagery must render on independent Cloudflare deployments without Lovable asset URLs.
+
 - Catalog playback and downloads must use only direct full-file resources from the TV BFF through `/api/public/movie`; never restore mobile resource, DASH, or stream-rebuild fallbacks because they served promos or incomplete files.
 - All catalog TV-BFF calls (home rails included) must run through server functions (`src/lib/catalog.functions.ts`); the TV gateway blocks browser origins with CORS, so client components must never import `fetchSection`/`searchCatalog` or other `moviebox.ts` functions directly.
 - The home page may fall back to loading MovieBox web sections from the visitor's browser (dynamic import of `fetchHome`) when the server call fails or is empty. Why: the web BFF allows browser CORS but can refuse Cloudflare-hosted servers.

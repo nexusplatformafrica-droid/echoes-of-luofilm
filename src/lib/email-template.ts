@@ -91,7 +91,7 @@ function recRow(recs: NotifyContent[]) {
 
 /* ---------------- WhatsApp + social ---------------- */
 
-export const WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbCdTbF6buMEQY5wzG3y";
+export const WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029VbEBSz6J3jv5PPsldQ3u";
 export const WHATSAPP_CHAT = "https://wa.me/256795592662";
 
 const SOCIALS: Array<{ label: string; href: string }> = [

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Phone, X, Users, Megaphone } from "lucide-react";
+import { Phone, X, ArrowUpRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
-import collageBg from "@/assets/wa-collage.jpg";
+import collageBg from "@/assets/whatsapp-movie-wall-clean.jpg";
+import movieMaxLogo from "@/assets/moviemax-logo.png";
+import { Button } from "@/components/ui/button";
 import { TOUR_STATE_EVENT } from "@/components/luo/DownloadTour";
 
-const CHANNEL_URL = "https://whatsapp.com/channel/0029VbCdTbF6buMEQY5wzG3y";
+const CHANNEL_URL = "https://whatsapp.com/channel/0029VbEBSz6J3jv5PPsldQ3u";
 const SUPPORT_URL = "https://wa.me/256795592662";
 /** Only set once the visitor actually joins the channel — closing it does not stick. */
 const JOINED_KEY = "luofilm:whatsapp-channel-joined";
@@ -90,80 +92,80 @@ export function WhatsAppPrompt() {
       <aside
         role="dialog"
         aria-label="Follow MOVIE MAX on WhatsApp"
-        className={`wa-prompt pointer-events-auto relative w-full max-w-sm transition-all duration-400 ${
+        className={`wa-prompt pointer-events-auto relative w-full max-w-4xl overflow-hidden rounded-lg border border-channel/40 bg-background shadow-2xl transition-all duration-400 ${
           leaving ? "scale-95 opacity-0" : "animate-enter"
         }`}
       >
-        <div className="relative overflow-hidden rounded-3xl border border-[#25D366]/40 p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
-          {/* movie-collage backdrop, softened so the content stays readable */}
+        <div className="relative">
           <img
             src={collageBg}
             alt=""
-            width={1024}
-            height={1024}
-            loading="lazy"
+            width={1536}
+            height={864}
+            decoding="async"
             className="pointer-events-none absolute inset-0 size-full object-cover"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0b3d2e]/90 via-[#0f5132]/85 to-[#075E54]/90" />
-          {/* glow accents */}
-          <div className="pointer-events-none absolute -top-16 -right-16 size-40 rounded-full bg-[#25D366]/30 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 size-40 rounded-full bg-[#128C7E]/30 blur-3xl" />
+          <div className="wa-banner-shade pointer-events-none absolute inset-0" />
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={close}
             aria-label="Dismiss WhatsApp prompt"
-            className="absolute top-3 right-3 grid size-8 place-items-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+            className="absolute top-3 right-3 z-20 rounded-full border border-foreground/20 bg-background/75 text-foreground hover:bg-background"
           >
             <X className="size-4" />
-          </button>
+          </Button>
 
-          <div className="relative flex flex-col items-center text-center">
-            <span className="grid size-14 place-items-center rounded-full bg-white/10 shadow-[0_10px_25px_-8px_rgba(37,211,102,0.8)] ring-4 ring-white/10">
-              <WhatsAppIcon className="size-11" />
-            </span>
+          <div className="relative z-10 flex min-h-[540px] flex-col justify-end p-6 sm:min-h-[530px] sm:max-w-[520px] sm:justify-center sm:p-10 lg:p-12">
+            <div className="mb-7 flex items-center gap-3">
+              <img src={movieMaxLogo} alt="Movie Max logo" className="size-12 shrink-0 object-contain" width={48} height={48} />
+              <span className="brand-logo-text text-xl font-black">MOVIE MAX</span>
+            </div>
+            <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase text-channel">
+              <WhatsAppIcon className="size-4" /> Official WhatsApp channel
+            </div>
 
-            <h2 className="mt-3 text-xl font-extrabold tracking-tight text-white">
-              Don't miss new releases!
+            <h2 className="max-w-md text-3xl font-black leading-tight text-foreground sm:text-5xl">
+              Your next movie.<span className="block text-channel">One message away.</span>
             </h2>
-            <p className="mt-1 text-sm text-white/75">
-              Join MOVIE MAX on WhatsApp for instant movie & episode updates.
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-foreground/80 sm:text-base">
+              New movies, series and translated favourites. Follow MOVIE MAX for the latest releases.
             </p>
 
-            <div className="mt-4 flex w-full items-center justify-center gap-3">
+            <p className="mt-3 text-xs text-foreground/60">Action · Drama · Comedy · Sci-fi</p>
+            <div className="mt-6 flex w-full flex-wrap items-center gap-2">
+              <Button asChild className="h-12 bg-channel px-5 font-bold text-channel-foreground hover:bg-channel/90">
               <a
                 href={CHANNEL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={join}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#25D366] to-[#1ebe5b] px-4 py-2.5 text-sm font-bold text-[#06301c] shadow-[0_10px_25px_-8px_rgba(37,211,102,0.9)] transition-transform hover:scale-[1.03] active:scale-95"
               >
-                <Megaphone className="size-4" />
+                <WhatsAppIcon className="size-5" />
                 Follow Channel
+                <ArrowUpRight className="size-4" />
               </a>
+              </Button>
+              <Button asChild variant="outline" className="h-12 border-foreground/20 bg-background/65 px-4 text-foreground hover:bg-background">
               <a
                 href={SUPPORT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={close}
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur transition-all hover:scale-[1.03] hover:bg-white/20 active:scale-95"
               >
                 <Phone className="size-4" />
-                Call Support
+                Support
               </a>
+              </Button>
             </div>
-
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-white/55">
-              <Users className="size-3" />
-              Loved by thousands of MOVIE MAX viewers
-            </p>
           </div>
 
           {/* 8s auto-exit progress bar */}
-          <div className="absolute inset-x-0 bottom-0 h-1 bg-white/10">
+          <div className="absolute inset-x-0 bottom-0 h-0.5 bg-foreground/10">
             <div
-              className="h-full bg-[#25D366]"
-              style={{ animation: `wa-exit-bar ${AUTO_EXIT_MS}ms linear forwards` }}
+              className="wa-banner-timer h-full bg-channel"
             />
           </div>
         </div>
