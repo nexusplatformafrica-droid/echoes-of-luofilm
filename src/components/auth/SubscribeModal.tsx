@@ -98,7 +98,7 @@ export function SubscribeModal({
   const geo = geoQ.data?.geo ?? null;
   const ipCode = geo?.code ?? "UG";
   const country = resolveCountry(ipCode, geo, geoQ.data?.rates ?? null);
-  const liveNets = null as { logo: string }[] | null;
+  const liveNets = null as { logo: string; provider: string; displayName: string }[] | null;
   // Mobile money only where this PawaPay account has live networks (falls back to the local list if PawaPay is unreachable).
   const momo = hasMobileMoney(country.code) && (liveNets === null || liveNets.length > 0);
   const methods = METHODS.filter((m) => momo || m.id !== "mobile_money");
