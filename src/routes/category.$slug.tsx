@@ -7,7 +7,7 @@ import { TopBar } from "@/components/youku/TopBar";
 import { MobileNav } from "@/components/youku/MobileNav";
 import { MediaCard } from "@/components/youku/MediaCard";
 import { GridSkeleton } from "@/components/youku/Skeletons";
-import { searchTitles } from "@/lib/catalog.functions";
+import { searchAny } from "@/lib/catalog-client";
 import { findCategory, isAdultItem, type SiteCategory } from "@/lib/categories";
 
 const categoryQuery = (category: SiteCategory) => {
@@ -16,7 +16,7 @@ const categoryQuery = (category: SiteCategory) => {
     queryKey: ["category", keywords],
     queryFn: async ({ pageParam }) => {
       const pages = await Promise.all(
-        keywords.map((q) => searchTitles({ data: { q, page: pageParam } })),
+        keywords.map((q) => searchAny(q, pageParam)),
       );
       // Interleave so every keyword contributes to each visible chunk.
       const merged: (typeof pages)[number] = [];
