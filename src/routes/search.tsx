@@ -9,7 +9,7 @@ import { TopBar } from "@/components/youku/TopBar";
 import { MobileNav } from "@/components/youku/MobileNav";
 import { MediaCard } from "@/components/youku/MediaCard";
 import { GridSkeleton } from "@/components/youku/Skeletons";
-import { searchTitles } from "@/lib/catalog.functions";
+import { searchAny } from "@/lib/catalog-client";
 import { restListTitles } from "@/lib/luo-rest";
 import type { CatalogItem } from "@/lib/moviebox";
 import { providerSearch } from "@/lib/providers.functions";
@@ -110,7 +110,7 @@ function SearchPage() {
 
   const query = useQuery({
     queryKey: ["search", q],
-    queryFn: () => searchTitles({ data: { q: q! } }),
+    queryFn: () => searchAny(q!),
     enabled: Boolean(q),
     staleTime: 60 * 1000,
   });
