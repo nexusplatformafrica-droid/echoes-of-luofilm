@@ -23,15 +23,18 @@ const homeQuery = queryOptions({
   // Some hosts (e.g. Cloudflare) get refused by the catalog server-side, but the
   // web catalog accepts visitors' browsers directly — so fall back to that.
   queryFn: async () => {
-    try {
-      const home = await getHome();
-      if (home.rows.length) return home;
-      throw new Error("empty home");
-    } catch (error) {
-      if (typeof window === "undefined") throw error;
-      const { fetchHome } = await import("@/lib/moviebox");
-      return (await fetchHome()) as import("@/lib/catalog.functions").HomeData;
+    // In the browser, load the MovieBox web home directly first: hosted servers
+    // (e.g. Cloudflare) are often refused or served a trimmed home with only one row.
+    if (typeof window !== "undefined") {
+      try {
+        const { fetchHome } = await import("@/lib/moviebox");
+        const home = (await fetchHome()) as import("@/lib/catalog.functions").HomeData;
+        if (home.rows.length) return home;
+      } catch {
+        /* fall through to the server */
+      }
     }
+    return getHome();
   },
   // Keep the front page live: the catalog's trending / coming-soon rails move
   // every few minutes, so refresh in the background rather than caching for long.
