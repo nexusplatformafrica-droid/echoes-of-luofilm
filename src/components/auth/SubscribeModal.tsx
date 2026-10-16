@@ -44,7 +44,6 @@ import type { Row } from "@/lib/fdb";
 import { PaymentFailedModal } from "@/components/auth/PaymentFailedModal";
 import { useMomoNetwork } from "@/hooks/usePawaPredict";
 import { MomoPayButton, momoFailState } from "@/components/auth/MomoPayButton";
-import { pawaCountries } from "@/lib/pawapay.functions";
 import { detectVisitorGeo } from "@/lib/geo.functions";
 import { PayPalButtons } from "@/components/auth/PayPalButtons";
 import { ApplePayLogo, CardLogo, GooglePayLogo, MobileMoneyLogo, PayPalLogo } from "@/components/auth/PaymentLogos";
@@ -99,8 +98,7 @@ export function SubscribeModal({
   const geo = geoQ.data?.geo ?? null;
   const ipCode = geo?.code ?? "UG";
   const country = resolveCountry(ipCode, geo, geoQ.data?.rates ?? null);
-  const pawaQ = useQuery({ queryKey: ["pawa-countries"], queryFn: () => pawaCountries(), staleTime: 1_800_000 });
-  const liveNets = pawaQ.data?.ok ? pawaQ.data.countries[country.iso3 ?? ""] ?? [] : null;
+  const liveNets = null as { logo: string; provider: string; displayName: string }[] | null;
   // Mobile money only where this PawaPay account has live networks (falls back to the local list if PawaPay is unreachable).
   const momo = hasMobileMoney(country.code) && (liveNets === null || liveNets.length > 0);
   const methods = METHODS.filter((m) => momo || m.id !== "mobile_money");
@@ -126,7 +124,7 @@ export function SubscribeModal({
     id: raw.id,
     name: raw.name,
     price: raw.price,
-    days: raw.days,
+    days: raw.hours ? raw.hours / 24 : raw.days,
     tier,
     devices: Number(raw.devices ?? 1) || 1,
   };
@@ -438,7 +436,7 @@ export function SubscribeModal({
                     </p>
 
                     <p className="mt-0.5 text-[10px] opacity-70 sm:mt-1 sm:text-[11px]">
-                      {p.days === 1 ? "24 hours" : `${p.days} days`}
+                      {p.hours ? `${p.hours} hours` : p.days === 1 ? "24 hours" : `${p.days} days`}
                     </p>
                     <p className="mt-1 hidden text-[11px] leading-snug opacity-60 sm:mt-2 sm:block">{p.note}</p>
                     <p className="mt-0.5 text-[9px] font-semibold opacity-70 sm:mt-1 sm:text-[10px]">

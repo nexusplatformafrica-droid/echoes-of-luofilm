@@ -11,10 +11,11 @@ import {
 
 export type PaymentSettings = { backend_url?: string };
 
-export const DEFAULT_PAYMENT_BACKEND = "https://function-bun-production-e268.up.railway.app";
+export const DEFAULT_PAYMENT_BACKEND = "https://function-bun-production-ab6c.up.railway.app";
 
 /** Older Railway deployments that must never be used again. */
 const RETIRED_BACKENDS = [
+  "function-bun-production-e268",
   "function-bun-production-038e6",
   "function-bun-production-8264",
   "function-bun-production-9a7c",
@@ -54,33 +55,43 @@ export type DepositInput = {
   currency?: string;
   reference: string;
   description?: string;
-  /** PawaPay provider code the customer confirmed (e.g. MTN_MOMO_UGA). */
+  /** Mobile network the customer confirmed. */
   provider?: string | undefined;
 };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/** Mobile money via PawaPay (kept under the old name so screens stay unchanged). */
+async function railway(method: "GET" | "POST", path: string, body?: unknown): Promise<any> {
+  const res = await fetch(`${paymentBackend()}${path}`, {
+    method,
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: body === undefined ? null : JSON.stringify(body),
+  });
+  const json: any = await res.json().catch(() => ({}));
+  if (!res.ok || json?.success === false)
+    throw new Error(String(json?.error ?? json?.message ?? `Payment server error ${res.status}`));
+  return json;
+}
+
+/** Mobile money through Relworx via the Railway payments backend. */
 export const relworx = {
-  deposit: async (input: DepositInput): Promise<any> => {
-    const { pawaDeposit } = await import("./pawapay.functions");
-    const r = await pawaDeposit({
-      data: { phone: input.msisdn, amount: input.amount, currency: input.currency ?? CURRENCY_CODE, reference: input.reference, message: input.description, ...(input.provider ? { provider: input.provider } : {}) },
-    });
-    if (!r.ok) throw new Error(r.message);
-    return r;
-  },
-  withdraw: async (input: DepositInput): Promise<any> => {
-    const { pawaPayout } = await import("./pawapay.functions");
-    const r = await pawaPayout({
-      data: { phone: input.msisdn, amount: input.amount, currency: input.currency ?? CURRENCY_CODE, reference: input.reference, message: input.description, ...(input.provider ? { provider: input.provider } : {}) },
-    });
-    if (!r.ok) throw new Error(r.message);
-    return r;
-  },
-  requestStatus: async (id: string, kind: "deposits" | "payouts" = "deposits"): Promise<any> => {
-    const { pawaStatus } = await import("./pawapay.functions");
-    return pawaStatus({ data: { kind, id } });
-  },
+  deposit: (input: DepositInput): Promise<any> =>
+    railway("POST", "/api/deposit", {
+      msisdn: normalizeMsisdn(input.msisdn),
+      amount: input.amount,
+      currency: input.currency ?? CURRENCY_CODE,
+      reference: input.reference,
+      description: input.description ?? "MOVIE MAX subscription",
+    }),
+  withdraw: (input: DepositInput): Promise<any> =>
+    railway("POST", "/api/withdraw", {
+      msisdn: normalizeMsisdn(input.msisdn),
+      amount: input.amount,
+      currency: input.currency ?? CURRENCY_CODE,
+      reference: input.reference,
+      description: input.description ?? "MOVIE MAX payout",
+    }),
+  requestStatus: (id: string, _kind: "deposits" | "payouts" = "deposits"): Promise<any> =>
+    railway("GET", `/api/request-status?internal_reference=${encodeURIComponent(id)}`),
 };
 
 const SUCCESS = /^(success|successful|completed|complete|paid)$/i;
@@ -132,7 +143,7 @@ const pickArray = (payload: any): any[] => {
   return [];
 };
 
-/** Mobile money transactions from the app ledger (PawaPay has no list endpoint). */
+/** Mobile money transactions from the app ledger . */
 export async function listRelworxTransactions(): Promise<RelworxTx[]> {
   const { fdb } = await import("./fdb");
   const { data } = await fdb.from("luo_transactions").select("*");
@@ -237,21 +248,12 @@ export async function sendWithdrawal(input: {
 
 export type CurrencyBalance = { currency: string; country: string; flag: string; balance: number | null };
 
-let cache: { at: number; list: { country: string; currency: string; balance: number }[] } | null = null;
-async function fetchBalances() {
-  if (cache && Date.now() - cache.at < 10_000) return cache.list;
-  const { pawaBalances } = await import("./pawapay.functions");
-  const r = await pawaBalances();
-  cache = { at: Date.now(), list: r.balances };
-  return r.balances;
-}
-
-/** Live PawaPay wallet balance for a currency (summed across countries); null when unreachable. */
+/** Live Relworx wallet balance for a currency; null when unreachable. */
 export async function walletBalance(currency = CURRENCY_CODE): Promise<number | null> {
   try {
-    const list = (await fetchBalances()).filter((b: { currency: string }) => b.currency === currency);
-    if (!list.length) return null;
-    return list.reduce((t: number, b: { balance: number }) => t + (Number.isFinite(b.balance) ? b.balance : 0), 0);
+    const r = await railway("GET", `/api/wallet/balance?currency=${encodeURIComponent(currency)}`);
+    const n = Number(r?.balance ?? r?.data?.balance);
+    return Number.isFinite(n) ? n : null;
   } catch {
     return null;
   }
@@ -259,14 +261,7 @@ export async function walletBalance(currency = CURRENCY_CODE): Promise<number | 
 
 /** Live balance for every supported country wallet. */
 export async function allWalletBalances(): Promise<CurrencyBalance[]> {
-  let list: { country: string; currency: string; balance: number }[] = [];
-  try {
-    list = await fetchBalances();
-  } catch {
-    /* offline */
-  }
-  return COUNTRIES.map((c) => {
-    const hit = list.find((b) => b.country === c.iso3 && b.currency === c.currency);
-    return { currency: c.currency, country: c.name, flag: c.flag, balance: hit ? hit.balance : null };
-  });
+  return Promise.all(
+    COUNTRIES.map(async (c) => ({ currency: c.currency, country: c.name, flag: c.flag, balance: await walletBalance(c.currency) })),
+  );
 }

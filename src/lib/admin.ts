@@ -8,6 +8,8 @@ export type Plan = {
   name: string;
   price: number;
   days: number;
+  /** Optional short duration in hours (e.g. 6); overrides days when set. */
+  hours?: number;
   note: string;
   /** Simultaneous device allowance for the plan. */
   devices: number;

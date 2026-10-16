@@ -168,7 +168,7 @@ async function activateSubscription(tx: Row, source = "relworx") {
     id: uuid(),
     user_id: tx.user_id,
     action: "subscription_activated",
-    detail: `${tx.plan_name} · ${days} days`,
+    detail: `${tx.plan_name} · ${days < 1 ? `${Math.round(days * 24)} hours` : `${days} days`}`,
     target: String(tx.plan_name ?? ""),
     created_at: nowIso(),
   });
