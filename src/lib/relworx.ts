@@ -55,7 +55,7 @@ export type DepositInput = {
   currency?: string;
   reference: string;
   description?: string;
-  /** PawaPay provider code the customer confirmed (e.g. MTN_MOMO_UGA). */
+  /** Mobile network the customer confirmed. */
   provider?: string | undefined;
 };
 
@@ -143,7 +143,7 @@ const pickArray = (payload: any): any[] => {
   return [];
 };
 
-/** Mobile money transactions from the app ledger (PawaPay has no list endpoint). */
+/** Mobile money transactions from the app ledger . */
 export async function listRelworxTransactions(): Promise<RelworxTx[]> {
   const { fdb } = await import("./fdb");
   const { data } = await fdb.from("luo_transactions").select("*");

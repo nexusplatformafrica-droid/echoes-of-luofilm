@@ -85,13 +85,28 @@ export function SettingsTab() {
                       onChange={(e) => editPlan(tier, i, { price: Number(e.target.value) || 0 })}
                       placeholder="Price UGX"
                     />
-                    <input
-                      className={softField}
-                      inputMode="numeric"
-                      value={String(p.days)}
-                      onChange={(e) => editPlan(tier, i, { days: Number(e.target.value) || 1 })}
-                      placeholder="Days"
-                    />
+                    <div className="flex gap-1">
+                      <input
+                        className={softField}
+                        inputMode="numeric"
+                        value={String(p.hours ? p.hours : p.days)}
+                        onChange={(e) => {
+                          const n = Number(e.target.value) || 1;
+                          editPlan(tier, i, p.hours ? { hours: n } : { days: n });
+                        }}
+                        placeholder="Length"
+                      />
+                      <select
+                        className={softField}
+                        value={p.hours ? "hours" : "days"}
+                        onChange={(e) =>
+                          editPlan(tier, i, e.target.value === "hours" ? { hours: p.hours || 6 } : { hours: 0, days: p.days || 1 })
+                        }
+                      >
+                        <option value="days">days</option>
+                        <option value="hours">hours</option>
+                      </select>
+                    </div>
                     <input
                       className={softField}
                       inputMode="numeric"

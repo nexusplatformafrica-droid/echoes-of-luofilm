@@ -208,7 +208,7 @@ export function WalletTab() {
         title="Balances by country"
         action={
           <span className="text-[11px] opacity-60">
-            {balances.isFetching ? "refreshing…" : "live from PawaPay"}
+            {balances.isFetching ? "refreshing…" : "live from Relworx"}
           </span>
         }
       >
@@ -351,7 +351,7 @@ export function WalletTab() {
                 ["Plan", openTx.planName],
                 ["Kind", openTx.kind],
                 ["Reference", openTx.reference],
-                ["PawaPay reference", openTx.internal_reference ?? "—"],
+                ["Relworx reference", openTx.internal_reference ?? "—"],
                 ["Status", openTx.status],
                 ["Date", fullDate(openTx.created_at)],
               ].map(([k, v]) => (
