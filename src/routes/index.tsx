@@ -11,8 +11,7 @@ import { VjRail } from "@/components/youku/VjRail";
 import { ReferralBanner } from "@/components/youku/ReferralBanner";
 import { isAdultItem } from "@/lib/categories";
 import { ProviderTrending } from "@/components/providers/ProviderTrending";
-import { getHome, getTrending } from "@/lib/catalog.functions";
-import { balanceTrending } from "@/lib/trending-filter";
+import { getHome } from "@/lib/catalog.functions";
 import type { CatalogItem } from "@/lib/moviebox";
 import { heroHref, loadHeroSlides } from "@/lib/hero";
 
@@ -51,16 +50,6 @@ const homeQuery = queryOptions({
 
 
 
-const trendingQuery = queryOptions({
-  queryKey: ["trending-wide"],
-  queryFn: () => getTrending(),
-  staleTime: 15 * 1000,
-  refetchInterval: 60 * 1000,
-  refetchIntervalInBackground: true,
-  refetchOnWindowFocus: true,
-  refetchOnMount: "always",
-});
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -88,14 +77,12 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const { data, refetch } = useQuery(homeQuery);
-  const wideTrending = useQuery(trendingQuery);
   // On some hosts the upstream hero list comes back empty; fall back to
   // trending / first rail titles that have artwork so the slider never vanishes.
   const autoHero = (() => {
     const h = data?.hero ?? [];
     if (h.length) return h;
     const pool = [
-      ...(wideTrending.data ?? []),
       ...(data?.trending ?? []),
       ...((data?.rows ?? []).flatMap((r) => r.items ?? [])),
     ];
@@ -186,14 +173,8 @@ function HomePage() {
   const sections: { title: string; items: CatalogItem[]; ranked?: boolean }[] = (data?.rows ?? []).map((r) => ({ title: cleanTitle(r.title), items: clean(r.items) }))
     .filter((s) => s.items.length > 0);
 
-  // Real trending straight from the catalog's own trending rail.
-  const rankedSection = sections.find((s) => s.ranked);
-  const upstreamTrending = balanceTrending(
-    clean([...(wideTrending.data ?? []), ...(data?.trending ?? []), ...(rankedSection?.items ?? [])]),
-  );
-  const trending = upstreamTrending.length >= 4 ? upstreamTrending : (rankedSection?.items ?? []);
   const comingSoon = clean(data?.comingSoon ?? []);
-  const rails = sections.filter((s) => !s.ranked || s.items !== trending);
+  const rails = sections;
 
 
   return (
@@ -291,11 +272,6 @@ function HomePage() {
             <VjRail />
           </div>
 
-          {!!trending.length && (
-            <div className="relative z-10 pl-3 sm:pl-4 lg:pl-2">
-              <Rail title="Trending now" items={trending} ranked priority />
-            </div>
-          )}
           <div className="relative z-10 pl-3 sm:pl-4 lg:pl-2">
             <ProviderTrending />
           </div>
