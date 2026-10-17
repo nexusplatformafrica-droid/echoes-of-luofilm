@@ -41,6 +41,7 @@ export const CATEGORIES: SiteCategory[] = [
     label: "Movies",
     icon: "movies",
     keyword: "action",
+    keywords: ["action", "movie", "nollywood", "thriller", "comedy", "horror", "hindi movie"],
     type: "movie",
   },
   {
