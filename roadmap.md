@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Verify and display the actual MovieBox web API sections, including Nollywood, and align catalog playback with the website API without TV/app substitutes.
+
 - [x] Update every WhatsApp channel link, redesign its floating banner with Movie Max logo and varied movie imagery without VJ labels, and provide the Cloudflare deployment configuration checklist.
 
 - [x] Keep the sidebar flat against the left wall; round only the outward-facing curves and preserve the animated gradient.
