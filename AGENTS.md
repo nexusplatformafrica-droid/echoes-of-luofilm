@@ -13,8 +13,9 @@
 
 - The WhatsApp floating banner uses bundled movie-wall artwork and the existing bundled brand logo with semantic channel tokens. Why: its imagery must render on independent Cloudflare deployments without Lovable asset URLs.
 
-- Catalog playback and downloads must use only direct full-file resources from the TV BFF through `/api/public/movie`; never restore mobile resource, DASH, or stream-rebuild fallbacks because they served promos or incomplete files.
-- All catalog TV-BFF calls (home rails included) must run through server functions (`src/lib/catalog.functions.ts`); the TV gateway blocks browser origins with CORS, so client components must never import `fetchSection`/`searchCatalog` or other `moviebox.ts` functions directly.
+- Catalog playback and downloads use only unlocked, full-length MP4 streams from the website BFF through `/api/public/movie`, with its media referer; never substitute TV/mobile resources or adaptive manifests. Why: the website's actual full files must match the selected title.
+- Website catalog reads may run browser-first with `catalog.functions.ts` as SSR/failure fallback; home sections must never call TV/mobile gateways. Why: hosted egress may receive incomplete website responses.
+- Pure website rail-merging and full-stream validation rules live in `web-catalog-rules.ts` with focused tests. Why: rotated empty blocks and locked previews must not hide or replace real content.
 - In the browser the home page loads MovieBox web sections directly first and uses the server function only as fallback/SSR. Why: Cloudflare-hosted servers get refused or a trimmed home.
 - Activity records capture only signed-in users' actionable clicks, internal destinations, and page paths; never store typed field values or other sensitive input.
 - Keep every existing sitemap in the sitemap index and robots file when adding a new content-group sitemap, because external indexes may already rely on those URLs.

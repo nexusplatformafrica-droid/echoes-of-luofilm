@@ -1,8 +1,22 @@
-# MovieBox / AoneRoom API — Complete Integration Guide
+# MovieBox website API
+
+The current catalog uses `/wefeed-h5api-bff` at `https://h5-api.aoneroom.com`.
+It does not sign website requests or substitute TV/mobile content.
+
+- Home: `GET /home?host=moviebox.ph`, reading `data.operatingList` in order. Keep every populated subject-bearing block, merge duplicate titles, and skip empty rotated blocks, filters and live sports. `Nollywood Movie` is a populated website rail; the separate `Nollywood` block may be empty.
+- Search: `POST /subject/search` with `{keyword, page, perPage:20}`; subjects are in `data.items`.
+- Website recommendations paginate separately through `/subject/trending?page=1&perPage=18`; they are not additional pages of named home sections.
+- Playback domain: `GET /media-player/get-domain`. Obtain the anonymous token through `/country-code`'s `x-user` header.
+- Playback: `GET {media-domain}/wefeed-h5api-bff/subject/play?subjectId=...&se=...&ep=...&detailPath=...&streamSignType=1`, with the actual title playback-page referer. Only unlocked full-length MP4 streams are relayed; no TV/app fallback.
+- Captions: `/subject/caption?format=MP4&id={streamId}&subjectId=...&detailPath=...`.
+- Forward Range and the website media origin referer when fetching media bytes. Validate the response type rather than serving error HTML as MP4.
+- Home and search run browser-first because hosted requests may be refused or trimmed; server functions remain SSR/failure fallbacks.
+
+## Archived mobile API reference (not the site's catalog)
 
 Everything needed to fetch home rows, search, title details, seasons/episodes,
 stream links and subtitles from the MovieBox (aoneroom / inmoviebox) mobile BFF
-API — exactly as this site does it. Framework-agnostic: the code below is plain
+API — legacy reference only. Framework-agnostic: the code below is plain
 TypeScript/Node (works in Node 18+, Bun, Deno, Cloudflare Workers with
 `nodejs_compat`).
 

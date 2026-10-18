@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { fetchFreshSources, fetchSources } from "@/lib/moviebox";
+import { fetchFreshSources, fetchSources, webRequest } from "@/lib/moviebox";
 import { z } from "zod";
 
 /**
- * Stable relay for full TV-BFF MP4 files. It resolves a fresh signed URL for
+ * Stable relay for full website MP4 files. It resolves a fresh signed URL for
  * each browser Range request, preventing an expired URL from breaking long
  * playback sessions or downloads.
  */
@@ -68,7 +68,7 @@ export const Route = createFileRoute("/api/public/movie")({
         let source = selectSource(sources);
         if (!source) return errorResponse("Full movie file is unavailable", 404);
 
-        // TV play-info includes the full file size. Return it immediately so
+        // Website stream metadata includes the full file size. Return it immediately so
         // the download dialog never waits for the large media host to answer.
         if (probe && source.bytes > 0) {
           return Response.json(
@@ -90,29 +90,15 @@ export const Route = createFileRoute("/api/public/movie")({
             : boundedPlaybackRange(incomingRange);
         // The media host returns 403 for requests without a browser
         // User-Agent (the hosted server sends none by default).
+        const domain = await webRequest("GET", "/media-player/get-domain").catch(() => "https://mzfi.me/");
+        const mediaReferer = typeof domain === "string" && domain.startsWith("https://") ? `${domain.replace(/\/$/, "")}/` : "https://mzfi.me/";
         const mediaHeaders = (): Record<string, string> => ({
           "user-agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
           accept: "*/*",
+          referer: mediaReferer,
           ...(range ? { range } : {}),
         });
-        // Cloudflare egress is sometimes refused by the media host even when
-        // the same full file is available to the viewer's browser. Redirect
-        // without a Referer so the host does not reject the follow-up request
-        // as hotlinking. 307 preserves Range for playback and resumable files.
-        const directFallback = (url: string) =>
-          !probe
-            ? new Response(null, {
-                status: 307,
-                headers: {
-                  location: url,
-                  "cache-control": "no-store",
-                  "referrer-policy": "no-referrer",
-                  "cross-origin-resource-policy": "cross-origin",
-                  ...corsHeaders,
-                },
-              })
-            : null;
         const safeFetch = (url: string) =>
           fetch(url, { headers: mediaHeaders() }).catch(() => null);
         let upstream = await safeFetch(source.url);
@@ -133,10 +119,13 @@ export const Route = createFileRoute("/api/public/movie")({
               { headers: { "cache-control": "no-store", ...corsHeaders } },
             );
           }
-          return (
-            directFallback(source.url) ??
-            errorResponse("Full movie file could not be opened", 502)
-          );
+          return errorResponse("Full movie file could not be opened", 502);
+        }
+
+        const mediaType = upstream.headers.get("content-type") ?? "";
+        if (!/video\/mp4|application\/octet-stream/i.test(mediaType)) {
+          await upstream.body?.cancel();
+          return errorResponse("Media provider returned an invalid movie file", 502);
         }
 
         if (probe) {
