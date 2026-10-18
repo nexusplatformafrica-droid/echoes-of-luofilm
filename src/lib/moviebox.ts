@@ -1,3 +1,4 @@
+import { isFullWebStream, mergeWebRows } from "./web-catalog-rules";
 import { base64ToBytes, bytesToBase64, hmacMd5, md5Hex } from "./md5";
 
 const SECRET = "76iRl07s0xSN9jqmEWAt79EBJZulIQIsV64FZr2O";
@@ -213,7 +214,7 @@ function rememberDetailPath(subject: any) {
   }
 }
 
-function webHeaders(): Record<string, string> {
+function webHeaders(referer = WEB_REFERER): Record<string, string> {
   const headers: Record<string, string> = {
     accept: "application/json",
     "accept-language": "en-US,en;q=0.9",
@@ -228,7 +229,7 @@ function webHeaders(): Record<string, string> {
     "x-no-high-risk-restrict": "0",
     "x-vip-restrict": "1",
     "x-source": "",
-    referer: WEB_REFERER,
+    referer,
   };
   if (!isBrowser) {
     headers["user-agent"] =
@@ -243,10 +244,11 @@ async function webRaw(
   path: string,
   payload?: unknown,
   host: string = WEB_HOST,
+  referer = WEB_REFERER,
 ): Promise<any> {
   const res = await fetch(`${host}${WEB_PREFIX}${path}`, {
     method,
-    headers: webHeaders(),
+    headers: webHeaders(referer),
     body: payload === undefined ? null : JSON.stringify(payload),
   });
   const xUser = res.headers.get("x-user");
@@ -283,14 +285,15 @@ export async function webRequest(
   path: string,
   payload?: unknown,
   host?: string,
+  referer?: string,
 ): Promise<any> {
   await ensureWebToken();
   try {
-    return await webRaw(method, path, payload, host);
+    return await webRaw(method, path, payload, host, referer);
   } catch {
     webToken = null;
     await ensureWebToken();
-    return webRaw(method, path, payload, host);
+    return webRaw(method, path, payload, host, referer);
   }
 }
 
@@ -451,7 +454,7 @@ async function fetchWebHome() {
   }
   if (!rows.length) throw new Error("web home empty");
   const trending = rows.find((r) => /popular/i.test(r.title))?.items ?? rows[0]!.items;
-  return { hero: hero.slice(0, 8), rows, trending: trending.slice(0, 20), comingSoon: comingSoon.slice(0, 30), web: true };
+  return { hero: hero.slice(0, 8), rows: mergeWebRows(rows), trending: trending.slice(0, 20), comingSoon: comingSoon.slice(0, 30), web: true };
 }
 
 /** Home is always the MovieBox website's own sections — retried, never replaced. */
@@ -584,38 +587,9 @@ export async function fetchTabRows(tabId: number) {
  * rails (Bollywood, South Indian, Hindi short TV…) are skipped on purpose.
  */
 export async function fetchMostTrending(): Promise<CatalogItem[]> {
-  const [home, movies, series] = await Promise.all([
-    fetchTabRows(0),
-    fetchTabRows(2),
-    fetchTabRows(5),
-  ]);
-  const SKIP = /bollywood|south indian|indian|hindi|tamil|telugu|hot short tv|punjabi/i;
-  const pick = (rows: { title: string; items: CatalogItem[] }[], re: RegExp) =>
-    rows.filter((r) => re.test(r.title) && !SKIP.test(r.title)).flatMap((r) => r.items);
-
-  // Each entry is one "lane"; we take one title from each lane in turn.
-  const lanes = [
-    pick(home, /trending/i),
-    pick(home, /hollywood/i),
-    pick(series, /series in progress|top series this week|trending/i),
-    pick(home, /western tv/i),
-    pick(movies, /trending|top movies|adventure|sci-fi|super hero/i),
-    pick(home, /best asian series/i),
-    pick(series, /fantasy chronicles|action hardcore/i),
-  ].filter((lane) => lane.length);
-
-  const seen = new Set<string>();
-  const out: CatalogItem[] = [];
-  const depth = Math.max(0, ...lanes.map((l) => l.length));
-  for (let i = 0; i < depth && out.length < 30; i += 1) {
-    for (const lane of lanes) {
-      const item = lane[i];
-      if (!item || seen.has(item.id)) continue;
-      seen.add(item.id);
-      out.push(item);
-    }
-  }
-  return out.slice(0, 30);
+  const data = await webRequest("GET", "/subject/trending?page=1&perPage=30");
+  return (Array.isArray(data?.subjectList) ? data.subjectList : [])
+    .map(toItem).filter((item: CatalogItem | null): item is CatalogItem => !!item?.poster);
 }
 
 /** All live catalog rails from the movie + TV tabs, for the home page. */
@@ -699,52 +673,15 @@ export type TitleDetails = CatalogItem & {
 };
 
 export async function fetchDetails(subjectId: string): Promise<TitleDetails> {
-  const tv = await tvRequest("/subject/get", { subjectId }).catch(() => null);
-  const data = tv?.subjectId
-    ? tv
-    : await request("GET", `/wefeed-mobile-bff/subject-api/get?subjectId=${subjectId}`);
+  const host = await getMediaDomain();
+  const slug = detailPathCache.get(subjectId);
+  const detail = await webRequest("GET", `/detail?subjectId=${encodeURIComponent(subjectId)}${slug ? `&detailPath=${encodeURIComponent(slug)}` : ""}`, undefined, host);
+  const data = detail?.subject;
   const base = toItem(data);
-  if (!base) throw new Error("Title not found");
-
-  let seasons: { season: number; episodes: number }[] = [];
-  if (base.type === "series") {
-    try {
-      // TV season-info first; mobile v2 / v1 kept as fallbacks.
-      const info = await tvRequest("/subject/season-info", { subjectId })
-        .then((res: any) =>
-          Array.isArray(res?.seasons) && res.seasons.length ? res : Promise.reject(),
-        )
-        .catch(() =>
-          request("GET", `${API_PREFIX}/subject-api/season-info/v2?subjectId=${subjectId}&isVip=0`),
-        )
-        .catch(() =>
-          request("GET", `${API_PREFIX}/subject-api/season-info?subjectId=${subjectId}`),
-        );
-
-      const list: any[] = Array.isArray(info?.seasons)
-        ? info.seasons
-        : Array.isArray(info)
-          ? info
-          : [];
-      seasons = list
-        .map((s) => ({
-          season: Number(s?.se ?? s?.season ?? 0),
-          episodes: Number(
-            s?.maxEp ??
-              s?.episodes ??
-              (Array.isArray(s?.resolutions)
-                ? Math.max(0, ...s.resolutions.map((r: any) => Number(r?.epNum) || 0))
-                : 0),
-          ),
-        }))
-        .filter((s) => s.season > 0 && s.episodes > 0);
-    } catch {
-      seasons = [];
-    }
-    if (!seasons.length && Number(data?.seNum) > 0) {
-      seasons = [{ season: 1, episodes: Number(data?.epNum) || 1 }];
-    }
-  }
+  if (!base || base.id !== subjectId) throw new Error("Title not found");
+  const seasons = (Array.isArray(detail?.resource?.seasons) ? detail.resource.seasons : [])
+    .map((season: any) => ({ season: Number(season.se), episodes: Number(season.maxEp) }))
+    .filter((season: { season: number; episodes: number }) => season.season > 0 && season.episodes > 0);
 
   return {
     ...base,
@@ -752,7 +689,7 @@ export async function fetchDetails(subjectId: string): Promise<TitleDetails> {
     duration: data?.duration ? String(data.duration) : null,
     country: data?.countryName ? String(data.countryName) : null,
     language: data?.language ? String(data.language) : null,
-    cast: (data?.staffList ?? [])
+    cast: (detail?.stars ?? data?.staffList ?? [])
       .filter((s: any) => typeof s?.name === "string" && s.name)
       .map((s: any) => ({
         name: String(s.name),
@@ -925,26 +862,18 @@ async function webSources(
     "GET",
     `/subject/play?subjectId=${subjectId}&se=${se}&ep=${ep}&detailPath=${encodeURIComponent(
       detailPath,
-    )}&streamSignType=1&supportCodecs%5Bh264%5D=1`,
+    )}&streamSignType=1`,
     undefined,
     host,
+    `${host}/spa/videoPlayPage/${se > 0 ? "tv" : "movies"}/${encodeURIComponent(detailPath)}?id=${subjectId}&detailSe=${se}&detailEp=${ep}&lang=en`,
   ).catch(() => null);
-  let streams: any[] = Array.isArray(info?.streams) ? info.streams : [];
-  if (!streams.length) {
-    // Download endpoint lists the same files for some titles.
-    const dl = await webRequest(
-      "GET",
-      `/subject/download?subjectId=${subjectId}&se=${se}&ep=${ep}&detailPath=${encodeURIComponent(
-        detailPath,
-      )}`,
-    ).catch(() => null);
-    streams = Array.isArray(dl?.downloads) ? dl.downloads : [];
-  }
+  const streams: any[] = Array.isArray(info?.streams) ? info.streams : [];
   const found = new Map<string, StreamSource>();
   for (const s of streams) {
     const url = typeof s?.url === "string" ? s.url : "";
-    if (!url.startsWith("https://")) continue;
-    const fileKey = url.split("?")[0]!;
+    if (!isFullWebStream(s)) continue;
+    if (s?.se != null && Number(s.se) !== se || s?.ep != null && Number(s.ep) !== ep) continue;
+    const fileKey = url.split("?")[0] ?? url;
     const resolution = parseInt(String(s?.resolutions ?? s?.resolution ?? ""), 10) || 0;
     const prev = found.get(fileKey);
     if (prev && prev.resolution >= resolution) continue;
@@ -964,7 +893,7 @@ async function webSources(
   const sources = [...found.values()].sort(
     (a, b) => codecRank(a) - codecRank(b) || b.resolution - a.resolution || b.bytes - a.bytes,
   );
-  const streamId = streams.find((s: any) => s?.id)?.id;
+  const streamId = sources[0]?.id;
   if (sources.length && streamId) {
     const data = await webRequest(
       "GET",
@@ -986,23 +915,11 @@ async function webSources(
 }
 
 export async function fetchSources(subjectId: string, season = 0, episode = 0) {
-  // Web playback first (the website's own player API); TV BFF as fallback.
-  const web = await webSources(subjectId, season, episode).catch(() => [] as StreamSource[]);
-  if (web.some((s) => !s.promo)) return web.filter((s) => !s.promo);
-  let tv = await tvSources(subjectId, season, episode);
-  if (!tv.some((s) => !s.promo)) {
-    // One fresh retry before declaring a title unplayable.
-    const { se, ep } = playIdentity(season, episode);
-    playInfoCache.delete(`${subjectId}:${se}:${ep}`);
-    tv = await tvSources(subjectId, season, episode);
-  }
-  return tv.filter((source) => !source.promo);
+  return webSources(subjectId, season, episode);
 }
 
-/** Refresh short-lived TV play-info after a CDN authorization failure. */
+/** Resolve a new website-signed URL after a CDN failure. */
 export async function fetchFreshSources(subjectId: string, season = 0, episode = 0) {
-  const { se, ep } = playIdentity(season, episode);
-  playInfoCache.delete(`${subjectId}:${se}:${ep}`);
   return fetchSources(subjectId, season, episode);
 }
 
@@ -1041,7 +958,7 @@ export async function fetchRelated(details: {
   type: "movie" | "series";
 }): Promise<CatalogItem[]> {
   // TV detail-rec: the catalog's own recommendations for this title.
-  const rec = await tvRequest("/subject/detail-rec", { subjectId: details.id }).catch(() => null);
+  const rec = await webRequest("GET", `/subject/detail-rec?subjectId=${details.id}&page=1&perPage=18`).catch(() => null);
   const recItems: CatalogItem[] = [];
   const recSeen = new Set<string>([details.id]);
   for (const s of Array.isArray(rec?.items) ? rec.items : []) {

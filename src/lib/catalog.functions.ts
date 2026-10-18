@@ -19,7 +19,7 @@ import {
   type StreamSource,
   type TitleDetails,
 } from "./moviebox";
-import { HOME_SECTIONS, fetchSection } from "./home-sections";
+
 
 export type HomeData = {
   hero: CatalogItem[];
@@ -143,10 +143,9 @@ export const getTrending = createServerFn({ method: "GET" }).handler(
 export const getSection = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ title: z.string().min(1).max(120) }).parse(data))
   .handler(async ({ data }): Promise<CatalogItem[]> => {
-    const section = HOME_SECTIONS.find((s) => s.title === data.title);
-    if (!section) return [];
     try {
-      return await fetchSection(section);
+      const home = await fetchHome();
+      return home.rows.find((row) => row.title.toLowerCase() === data.title.toLowerCase())?.items ?? [];
     } catch (error) {
       console.error(error);
       return [];
