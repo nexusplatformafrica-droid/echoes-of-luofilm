@@ -10,7 +10,7 @@ import { RowSkeleton } from "@/components/youku/Skeletons";
 import { VjRail } from "@/components/youku/VjRail";
 import { ReferralBanner } from "@/components/youku/ReferralBanner";
 import { isAdultItem } from "@/lib/categories";
-import { ProviderTrending } from "@/components/providers/ProviderTrending";
+import { LatestUploads } from "@/components/luo/LatestUploads";
 import { getHome } from "@/lib/catalog.functions";
 import type { CatalogItem } from "@/lib/moviebox";
 import { heroHref, loadHeroSlides } from "@/lib/hero";
@@ -273,7 +273,7 @@ function HomePage() {
           </div>
 
           <div className="relative z-10 pl-3 sm:pl-4 lg:pl-2">
-            <ProviderTrending />
+            <LatestUploads />
           </div>
 
         </div>

@@ -71,7 +71,10 @@ export function LuoLibrary({ language, vj = "" }: { language: LuoLanguage; vj?: 
       .filter((i) => i.kind === "series" && freshTags.has(i.id))
       .sort((a, b) => (freshTags.get(b.id)?.at(-1) ?? 0) - (freshTags.get(a.id)?.at(-1) ?? 0)),
   );
-  const latest = take(items.slice(0, 12));
+  const marked = items.filter((i) => i.latest);
+  const latest = take(
+    (marked.length ? marked : items.filter((i) => i.kind !== "series")).slice(0, 12),
+  );
   const movies = take(items.filter((i) => i.kind !== "series"));
   const series = take(items.filter((i) => i.kind === "series"));
 
