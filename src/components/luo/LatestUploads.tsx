@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { vjInfo } from "@/lib/vj";
 import { listLatestTitles, LANG_LABEL, type LuoLanguage } from "@/lib/luo";
 
 const ROUTE = { luo: "/luo/$id", luganda: "/luganda/$id", teso: "/teso/$id" } as const;
@@ -29,6 +30,11 @@ export function LatestUploads() {
                 <img src={t.poster_url} alt={t.title} loading="lazy" decoding="async" className="size-full object-cover" />
               ) : (
                 <div className="grid size-full place-items-center px-2 text-center text-xs text-muted-foreground">{t.title}</div>
+              )}
+              {vjInfo(t.vj) && (
+                <span className={`absolute left-0 top-0 z-10 max-w-[70%] truncate rounded-br-lg bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow sm:text-[10px] ${vjInfo(t.vj)!.gradient}`}>
+                  {vjInfo(t.vj)!.name}
+                </span>
               )}
               <span className="absolute right-1 top-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-black uppercase text-primary-foreground">
                 {LANG_LABEL[t.language as LuoLanguage]}
