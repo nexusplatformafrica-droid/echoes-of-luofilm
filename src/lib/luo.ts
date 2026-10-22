@@ -24,6 +24,8 @@ export type LuoTitle = {
   genre: string | null;
   year: number | null;
   published: boolean;
+  /** Admin-marked as "Latest" — shown first in Latest rails. */
+  latest: boolean;
   created_at: string;
 };
 
@@ -71,6 +73,7 @@ function toTitle(r: Row): LuoTitle {
     genre: str(r.genre) ?? str(r.section),
     year: typeof r.year === "number" ? r.year : r.year ? Number(r.year) || null : null,
     published: !!published,
+    latest: r.latest === true,
     created_at: toIso(r.created_at) ?? toIso(r.updated_at) ?? nowIso(),
   };
 }
@@ -156,6 +159,7 @@ export type TitleInput = {
   genre: string | null;
   year: number | null;
   published: boolean;
+  latest?: boolean;
 };
 
 const titlePayload = (f: TitleInput) => ({
@@ -216,3 +220,9 @@ export const LANG_LABEL: Record<LuoLanguage, string> = {
   luganda: "LUGANDA",
   teso: "TESO",
 };
+
+/** Admin-marked latest titles from every language, newest first. */
+export async function listLatestTitles(limit = 24) {
+  const rows = await readTitles();
+  return rows.filter((t) => t.published && t.latest).slice(0, limit);
+}

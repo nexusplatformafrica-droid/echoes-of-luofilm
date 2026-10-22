@@ -33,6 +33,7 @@ const emptyForm = {
   genre: "",
   year: "",
   published: true,
+  latest: false,
 };
 type Form = typeof emptyForm;
 
@@ -185,6 +186,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
         genre: f.genre || null,
         year: f.year ? Number(f.year) : null,
         published: f.published,
+        latest: f.latest,
       };
       await saveLuoTitle(payload, f.id || undefined, userId ?? null);
     },
@@ -230,6 +232,7 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
       genre: t.genre ?? "",
       year: t.year ? String(t.year) : "",
       published: t.published,
+      latest: t.latest,
     });
 
   const list = sub === "movies" ? movies : series;
@@ -348,6 +351,10 @@ export function ContentTab({ userId, restricted = false }: { userId?: string; re
                 <label className="flex items-center justify-between gap-2 rounded-2xl bg-white/65 px-4 text-[13px] font-semibold">
                   Published
                   <input type="checkbox" className="size-5 accent-[oklch(0.82_0.1_65)]" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
+                </label>
+                <label className="flex items-center justify-between gap-2 rounded-2xl bg-white/65 px-4 py-3 text-[13px] font-semibold sm:col-span-2">
+                  Mark as Latest (shows first on home & library)
+                  <input type="checkbox" className="size-5 accent-[oklch(0.82_0.1_65)]" checked={form.latest} onChange={(e) => setForm({ ...form, latest: e.target.checked })} />
                 </label>
               </div>
 
