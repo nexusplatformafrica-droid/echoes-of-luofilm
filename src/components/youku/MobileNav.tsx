@@ -1,90 +1,65 @@
+import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Icon3D } from "@/components/Icon3D";
+import { Clapperboard, Film, Home, Tv, User, Video } from "lucide-react";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
 import { listAllEpisodes, listLuoTitles, type LuoLanguage } from "@/lib/luo";
 
-/** Floating liquid-glass bottom navigation with 3D icons, mobile only. */
+/** Compact 56px bottom bar (6 × 56px tabs, 24px icons, 11px labels), mobile only. */
 export function MobileNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  const shell =
-    "relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-1.5 text-[10px] font-semibold transition-all duration-300";
-  const tone = (active: boolean) => (active ? "text-foreground" : "text-muted-foreground");
-
-  const Glow = ({ active }: { active: boolean }) => (
-    <span
-      className={`pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(180deg,color-mix(in_oklab,var(--brand)_38%,transparent),transparent)] transition-opacity duration-300 ${
-        active ? "opacity-100" : "opacity-0"
-      }`}
-    />
-  );
-
-  const iconClass = (active: boolean) =>
-    `size-6 transition-transform duration-300 ${active ? "-translate-y-0.5 scale-110" : "scale-95 opacity-80"}`;
-
+  const { user } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
   const queryClient = useQueryClient();
-  // Warm the library data as soon as the tab is touched/hovered so the page
-  // paints with content instead of skeletons.
+
   const warm = (language: LuoLanguage) => () => {
-    void queryClient.prefetchQuery({
-      queryKey: ["luo-titles", language],
-      queryFn: () => listLuoTitles(language),
-      staleTime: 30 * 1000,
-    });
-    void queryClient.prefetchQuery({
-      queryKey: ["luo-all-episodes"],
-      queryFn: listAllEpisodes,
-      staleTime: 60 * 1000,
-    });
+    void queryClient.prefetchQuery({ queryKey: ["luo-titles", language], queryFn: () => listLuoTitles(language), staleTime: 30_000 });
+    void queryClient.prefetchQuery({ queryKey: ["luo-all-episodes"], queryFn: listAllEpisodes, staleTime: 60_000 });
+  };
+
+  const item = (active: boolean) =>
+    `relative flex h-14 w-14 flex-col items-center justify-center gap-1 text-[11px] font-semibold leading-none transition-colors ${
+      active ? "text-primary-foreground" : "text-primary-foreground/70"
+    }`;
+  const Body = ({ icon, label, active }: { icon: ReactNode; label: string; active: boolean }) => (
+    <>
+      {active && <span className="absolute inset-x-1.5 inset-y-1 rounded-xl bg-primary-foreground/15" />}
+      <span className="relative">{icon}</span>
+      <span className="relative">{label}</span>
+    </>
+  );
+  const ic = "size-6";
+
+  const openProfile = () => {
+    if (!user) return setAuthOpen(true);
+    document.querySelector<HTMLButtonElement>('button[aria-label="Account"]')?.click();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] lg:hidden">
-      <nav className="pointer-events-auto flex w-full max-w-md items-center gap-1 rounded-[26px] border border-foreground/10 bg-background/70 p-1.5 shadow-[0_10px_34px_-8px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
-        <Link to="/" className={`${shell} ${tone(pathname === "/")}`}>
-          <Glow active={pathname === "/"} />
-          <Icon3D name="home" className={`relative ${iconClass(pathname === "/")}`} />
-          <span className="relative">Home</span>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden">
+      <nav className="pointer-events-auto flex h-14 items-center justify-between rounded-2xl bg-primary px-3 shadow-lg">
+        <Link to="/" className={item(pathname === "/")}>
+          <Body icon={<Home className={ic} />} label="Home" active={pathname === "/"} />
         </Link>
-        <Link
-          to="/luo"
-          data-tour="luo-tab"
-          onTouchStart={warm("luo")}
-          onMouseEnter={warm("luo")}
-          className={`${shell} ${tone(pathname.startsWith("/luo"))}`}
-        >
-          <Glow active={pathname.startsWith("/luo")} />
-          <Icon3D name="live-tv" className={`relative ${iconClass(pathname.startsWith("/luo"))}`} />
-          <span className="relative">Luo</span>
+        <Link to="/category/$slug" params={{ slug: "movies" }} className={item(pathname.startsWith("/category"))}>
+          <Body icon={<Film className={ic} />} label="Eng" active={pathname.startsWith("/category")} />
         </Link>
-        <Link
-          to="/luganda"
-          onTouchStart={warm("luganda")}
-          onMouseEnter={warm("luganda")}
-          className={`${shell} ${tone(pathname.startsWith("/luganda"))}`}
-        >
-          <Glow active={pathname.startsWith("/luganda")} />
-          <Icon3D name="drama" className={`relative ${iconClass(pathname.startsWith("/luganda"))}`} />
-          <span className="relative">Luganda</span>
+        <Link to="/luo" data-tour="luo-tab" onTouchStart={warm("luo")} className={item(pathname.startsWith("/luo"))}>
+          <Body icon={<Tv className={ic} />} label="Luo" active={pathname.startsWith("/luo")} />
         </Link>
-        <Link
-          to="/category/$slug"
-          params={{ slug: "trending" }}
-          className={`${shell} ${tone(pathname === "/category/trending")}`}
-        >
-          <Glow active={pathname === "/category/trending"} />
-          <Icon3D
-            name="trending"
-            className={`relative ${iconClass(pathname === "/category/trending")}`}
-          />
-          <span className="relative">Trending</span>
+        <Link to="/luganda" onTouchStart={warm("luganda")} className={item(pathname.startsWith("/luganda"))}>
+          <Body icon={<Clapperboard className={ic} />} label="Luganda" active={pathname.startsWith("/luganda")} />
         </Link>
-        <Link to="/search" search={{ q: "" }} className={`${shell} ${tone(pathname === "/search")}`}>
-          <Glow active={pathname === "/search"} />
-          <Icon3D name="search" className={`relative ${iconClass(pathname === "/search")}`} />
-          <span className="relative">Search</span>
+        <Link to="/teso" onTouchStart={warm("teso")} className={item(pathname.startsWith("/teso"))}>
+          <Body icon={<Video className={ic} />} label="Teso" active={pathname.startsWith("/teso")} />
         </Link>
+        <button type="button" onClick={openProfile} className={item(false)}>
+          <Body icon={<User className={ic} />} label="Profile" active={false} />
+        </button>
       </nav>
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 }
