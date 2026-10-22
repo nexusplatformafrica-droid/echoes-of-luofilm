@@ -38,8 +38,9 @@ export function MobileNav() {
   };
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+12px)] lg:hidden">
-      <nav className="pointer-events-auto flex h-14 items-center justify-between rounded-2xl bg-primary px-3 shadow-lg">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <nav className="pointer-events-auto flex h-14 w-full items-center justify-between bg-primary px-2 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_rgba(0,0,0,0.08)]">
+
         <Link to="/" className={item(pathname === "/")}>
           <Body icon={<Home className={ic} />} label="Home" active={pathname === "/"} />
         </Link>
